@@ -65,7 +65,7 @@
   .settings button.primary{background:var(--acc);border-color:var(--acc);color:#0e1016;font-weight:600}
   main{display:grid;grid-template-columns:repeat(auto-fit,minmax(300px,1fr));gap:14px;margin-top:10px}
   section{background:var(--card);border:1px solid var(--line);border-radius:14px;padding:14px 14px 6px}
-  section h2{margin:0 0 8px;font-size:12px;text-transform:uppercase;letter-spacing:.8px;color:var(--dim);display:flex;justify-content:space-between;font-weight:600}
+  section h2,.tsec h2{margin:0 0 8px;font-size:12px;text-transform:uppercase;letter-spacing:.8px;color:var(--dim);display:flex;justify-content:space-between;gap:10px;font-weight:600}
   .bar{height:3px;background:var(--line);border-radius:2px;margin-bottom:4px;overflow:hidden}
   .bar i{display:block;height:100%;background:var(--ok);transition:width .25s}
   .item{border-top:1px solid var(--line);padding:10px 2px}
@@ -141,6 +141,8 @@
   .fblive{font-size:10.5px;color:var(--acc);border:1px solid var(--line);border-radius:999px;padding:2px 8px;white-space:nowrap}
   .ffeed{font-size:11.5px;color:var(--dim);margin:0 0 8px;font-variant-numeric:tabular-nums}
   .ffeed.warn{color:#ffb4a2}
+  .fleg{font-size:11.5px;color:#ffc454;margin:0 0 8px}
+  .fbstar{color:#ffc454;margin-left:6px;font-size:11px}
   .fbzone{color:var(--faint);font-size:10.5px;text-transform:uppercase;letter-spacing:.7px;
     margin:10px 0 2px;font-weight:700}
   .fbcard{display:grid;grid-template-columns:auto 1fr auto auto;gap:10px;align-items:center;
@@ -155,6 +157,14 @@
   .fbcard.up .fbcd{color:var(--ok)}
   .fbcard.soon .fbcd{color:var(--warn)}
   .fbcard.dead .fbcd{color:var(--txt)}
+  /* legendary loot bosses: Dartan / Kashapa / Lagta */
+  .fbcard.leg{border-top-color:rgba(255,196,84,.85);padding-left:10px;
+    background:linear-gradient(90deg,rgba(255,196,84,.17),rgba(255,196,84,.02) 75%);
+    box-shadow:inset 3px 0 0 #ffc454}
+  .fbcard.leg .fbnm{color:#ffd27a}
+  .fbcard.leg .fbstate,
+  .fbcard.leg.up .fbstate,
+  .fbcard.leg.dead .fbstate{background:#ffc454;box-shadow:0 0 0 4px rgba(255,196,84,.18)}
   .fbact{display:flex;gap:4px}
   .fbact button{width:30px;height:30px;border-radius:8px;border:1px solid var(--line);
     background:var(--bg);color:var(--dim);cursor:pointer;display:inline-flex;align-items:center;
@@ -231,6 +241,7 @@
     </div>
     <div class="ffeed" id="fFeed"></div>
     <div class="fhint" data-i="tFHint"></div>
+    <div class="fleg" data-i="tLegNote"></div>
     <div id="tField"></div>
   </div>
   <div class="tfoot"><span data-i="tFoot"></span> <a href="https://www.aion2timers.com/world-boss-timer/" target="_blank" rel="noopener">aion2timers.com</a></div>
@@ -257,6 +268,7 @@ const UI = {
       tKill:"Erlegt", tClr:"Timer löschen", tClrAll:"Alle Timer löschen", tNoKill:"kein Kill erfasst",
       tEvery:"alle", tFUp:"oben", tFSoon:"spawnt in", tSortZone:"nach Zone", tSortNext:"nach Respawn",
       tSrvOff:"— ohne Live-Daten (manuell)", tSince:"seit", tLive:"Live", tFeedAge:"Feed vor {n} Min",
+      tSortRar:"nach Seltenheit", tLegNote:"\u2605 = Legendary-Loot",
       tFeedErr:"Live-Feed nicht erreichbar — manuelle Timer", tEst:"geschätzt",
       tFoot:"Feldboss-Daten aus Community-Quellen (aion2timers.com) · Respawn-Zyklen können sich mit Patches ändern. Quelle:"},
   en:{navCl:"Checklist", navTm:"Timers",
@@ -277,6 +289,7 @@ const UI = {
       tKill:"Killed", tClr:"Clear timer", tClrAll:"Clear all timers", tNoKill:"no kill logged",
       tEvery:"every", tFUp:"up", tFSoon:"respawns in", tSortZone:"by zone", tSortNext:"by respawn",
       tSrvOff:"— no live data (manual)", tSince:"since", tLive:"Live", tFeedAge:"feed {n} min old",
+      tSortRar:"by rarity", tLegNote:"\u2605 = legendary loot",
       tFeedErr:"live feed unreachable — manual timers", tEst:"estimated",
       tFoot:"Field boss data from community sources (aion2timers.com) · respawn cycles can change with patches. Source:"},
 };
@@ -333,56 +346,56 @@ const EXTRA_SCHED = [
 ];
 
 const FIELD_BOSSES = [
-  {id:"elyos01",f:"elyos",n:"Kernon of the West",z:"Cantas Valley",c:60},
-  {id:"elyos02",f:"elyos",n:"Neikel of the East",z:"Cantas Valley",c:60},
-  {id:"elyos03",f:"elyos",n:"Rotten Kutar",z:"Elun River Swamp",c:60},
-  {id:"elyos04",f:"elyos",n:"Blooming Korin",z:"Elun River Midstream",c:120},
-  {id:"elyos05",f:"elyos",n:"Bodyguard Teegant",z:"Fortress Ruins",c:180},
-  {id:"elyos06",f:"elyos",n:"Kusan the Mad Gladiator",z:"Fortress Ruins",c:240},
-  {id:"elyos07",f:"elyos",n:"Ritualist Garshim",z:"Fortress Ruins",c:240},
-  {id:"elyos08",f:"elyos",n:"Bloodfang Pnyn",z:"Tolbas Forest",c:360},
-  {id:"elyos09",f:"elyos",n:"Furious Saursus",z:"Tolbas Forest",c:360},
-  {id:"elyos10",f:"elyos",n:"Scholar Aulla",z:"Aulau Village",c:240},
-  {id:"elyos11",f:"elyos",n:"Chaser Taulo",z:"Aulau Village",c:240},
-  {id:"elyos12",f:"elyos",n:"Forest Warrior Aullamu",z:"Aulau Village",c:480},
-  {id:"elyos13",f:"elyos",n:"Heretic Layla",z:"Artamia Plateau",c:360},
-  {id:"elyos14",f:"elyos",n:"Black Tentacle Lawa",z:"Artamia Gorge",c:480},
-  {id:"elyos15",f:"elyos",n:"Centurion Demiros",z:"Artamia Plateau",c:480},
-  {id:"elyos16",f:"elyos",n:"Divine Ansas",z:"Artamia Plateau",c:720},
-  {id:"elyos17",f:"elyos",n:"Harvest Manager Moshav",z:"Drana Plantation",c:360},
-  {id:"elyos18",f:"elyos",n:"Sentinel K'nash",z:"Drana Plantation",c:480},
-  {id:"elyos19",f:"elyos",n:"Researcher Setram",z:"Nahid Legion Fortress",c:720},
-  {id:"elyos20",f:"elyos",n:"Phantasm Kasia",z:"Garden of the Illusion God",c:720},
-  {id:"elyos21",f:"elyos",n:"Silent Dartan",z:"Artamia Plateau South",c:720},
-  {id:"elyos22",f:"elyos",n:"Soul Ruler Kashapa",z:"Artamia Plateau East",c:720},
-  {id:"elyos23",f:"elyos",n:"High Commander Lagta",z:"Red Forest",c:1440},
-  {id:"elyos24",f:"elyos",n:"Eternal Gartua",z:"Isle of Eternity",c:1440},
-  {id:"asmo01",f:"asmo",n:"Melted Danar",z:"Dredgion Crash Site",c:60},
-  {id:"asmo02",f:"asmo",n:"Black Warrior Aed",z:"Nameless Graveyard",c:60},
-  {id:"asmo03",f:"asmo",n:"Faithful Rajit",z:"Sanctuary Watch Post",c:60},
-  {id:"asmo04",f:"asmo",n:"Berserker Vargor",z:"Sanctuary Watch Post",c:120},
-  {id:"asmo05",f:"asmo",n:"Blood Warrior Lannar",z:"Moslan Forest",c:180},
-  {id:"asmo06",f:"asmo",n:"Predator Garsan",z:"Moslan Forest",c:240},
-  {id:"asmo07",f:"asmo",n:"Deceiver Trid",z:"Urtumheim",c:240},
-  {id:"asmo08",f:"asmo",n:"Blue Wave Kelpina",z:"Forest of Purification",c:240},
-  {id:"asmo09",f:"asmo",n:"Advisor Resana",z:"Dranactus",c:360},
-  {id:"asmo10",f:"asmo",n:"High Overseer Nutah",z:"Dranactus",c:240},
-  {id:"asmo11",f:"asmo",n:"Special Operations Leader Linx",z:"Basfelt Ruins",c:360},
-  {id:"asmo12",f:"asmo",n:"Desecrator Newbold",z:"Basfelt Ruins",c:480},
-  {id:"asmo13",f:"asmo",n:"Specter Archon Axios",z:"Basfelt Ruins",c:480},
-  {id:"asmo14",f:"asmo",n:"Addicted Hardirun",z:"Pafnite Burial Ground",c:360},
-  {id:"asmo15",f:"asmo",n:"Executioner Barthien",z:"Gribade Canyon West",c:480},
-  {id:"asmo16",f:"asmo",n:"Drakan Battalion Weapon Guruta",z:"Gribade Canyon East",c:720},
-  {id:"asmo17",f:"asmo",n:"Veteran Shujakan",z:"Black Claw Village",c:360},
-  {id:"asmo18",f:"asmo",n:"Visionary Karuka",z:"Black Claw Village",c:480},
-  {id:"asmo19",f:"asmo",n:"Dark Shadow Vishwada",z:"Ragta Fortress",c:720},
-  {id:"asmo20",f:"asmo",n:"Sharp Shylak",z:"Impetusium Plaza",c:720},
-  {id:"asmo21",f:"asmo",n:"Silent Dartan",z:"Forest of Purification",c:720},
-  {id:"asmo22",f:"asmo",n:"Soul Ruler Kashapa",z:"Pafnite Burial Ground",c:720},
-  {id:"asmo23",f:"asmo",n:"High Commander Lagta",z:"Ragta Fortress",c:1440},
-  {id:"asmo24",f:"asmo",n:"Immortal Gartua",z:"Isle of Immortality",c:1440},
-  {id:"abyss02",f:"abyss",n:"Argo, the Spirit King",z:"Siel's Right Wing (Siel's Wing Islands)",c:1440},
-];
+{id:"elyos01",f:"elyos",n:"Kernon of the West",nd:"Kernon des Westens",z:"Cantas Valley",c:60},
+{id:"elyos02",f:"elyos",n:"Neikel of the East",nd:"Neikel des Ostens",z:"Cantas Valley",c:60},
+{id:"elyos03",f:"elyos",n:"Rotten Kutar",nd:"Verfaulter Kutar",z:"Elun River Swamp",c:60},
+{id:"elyos04",f:"elyos",n:"Blooming Korin",nd:"Blühender Korin",z:"Elun River Midstream",c:120},
+{id:"elyos05",f:"elyos",n:"Bodyguard Teegant",nd:"Leibgardist Teegant",z:"Fortress Ruins",c:180},
+{id:"elyos06",f:"elyos",n:"Kusan the Mad Gladiator",nd:"Wahnstreiter Kusan",z:"Fortress Ruins",c:240},
+{id:"elyos07",f:"elyos",n:"Ritualist Garshim",nd:"Erzpriester Garshim",z:"Fortress Ruins",c:240},
+{id:"elyos08",f:"elyos",n:"Bloodfang Pnyn",nd:"Blutzahn Pnyn",z:"Tolbas Forest",c:360},
+{id:"elyos09",f:"elyos",n:"Furious Saursus",nd:"Wütende Saursus",z:"Tolbas Forest",c:360},
+{id:"elyos10",f:"elyos",n:"Scholar Aulla",nd:"Gelehrter Aulla",z:"Aulau Village",c:240},
+{id:"elyos11",f:"elyos",n:"Chaser Taulo",nd:"Verfolger Taulo",z:"Aulau Village",c:240},
+{id:"elyos12",f:"elyos",n:"Forest Warrior Aullamu",nd:"Waldkrieger Aullamu",z:"Aulau Village",c:480},
+{id:"elyos13",f:"elyos",n:"Heretic Layla",nd:"Apostatin Layla",z:"Artamia Plateau",c:360},
+{id:"elyos14",f:"elyos",n:"Black Tentacle Lawa",nd:"Schwarztentakel Lawa",z:"Artamia Gorge",c:480},
+{id:"elyos15",f:"elyos",n:"Centurion Demiros",nd:"Zenturio Demiros",z:"Artamia Plateau",c:480},
+{id:"elyos16",f:"elyos",n:"Divine Ansas",nd:"Heiliger Ansas",z:"Artamia Plateau",c:720},
+{id:"elyos17",f:"elyos",n:"Harvest Manager Moshav",nd:"Ernteaufseher Moshav",z:"Drana Plantation",c:360},
+{id:"elyos18",f:"elyos",n:"Sentinel K'nash",nd:"Überwachungswaffe K'nash",z:"Drana Plantation",c:480},
+{id:"elyos19",f:"elyos",n:"Researcher Setram",nd:"Forscher Setram",z:"Nahid Legion Fortress",c:720},
+{id:"elyos20",f:"elyos",n:"Phantasm Kasia",nd:"Traumtrug Kasia",z:"Garden of the Illusion God",c:720},
+{id:"elyos21",f:"elyos",n:"Silent Dartan",nd:"Schweigender Dartan",z:"Artamia Plateau South",c:720 ,l:1},
+{id:"elyos22",f:"elyos",n:"Soul Ruler Kashapa",nd:"Seelenherrscher Kashapa",z:"Artamia Plateau East",c:720 ,l:1},
+{id:"elyos23",f:"elyos",n:"High Commander Lagta",nd:"Legat Lagta",z:"Red Forest",c:1440 ,l:1},
+{id:"elyos24",f:"elyos",n:"Eternal Gartua",nd:"Ewiger Gartua",z:"Isle of Eternity",c:1440},
+{id:"asmo01",f:"asmo",n:"Melted Danar",nd:"Geschmolzener Danar",z:"Dredgion Crash Site",c:60},
+{id:"asmo02",f:"asmo",n:"Black Warrior Aed",nd:"Dunkelkrieger Aed",z:"Nameless Graveyard",c:60},
+{id:"asmo03",f:"asmo",n:"Faithful Rajit",nd:"Treuer Rajit",z:"Sanctuary Watch Post",c:60},
+{id:"asmo04",f:"asmo",n:"Berserker Vargor",nd:"Berserker Vargor",z:"Sanctuary Watch Post",c:120},
+{id:"asmo05",f:"asmo",n:"Blood Warrior Lannar",nd:"Blutkrieger Lannar",z:"Moslan Forest",c:180},
+{id:"asmo06",f:"asmo",n:"Predator Garsan",nd:"Verschlinger Garsan",z:"Moslan Forest",c:240},
+{id:"asmo07",f:"asmo",n:"Deceiver Trid",nd:"Täuscherin Trid",z:"Urtumheim",c:240},
+{id:"asmo08",f:"asmo",n:"Blue Wave Kelpina",nd:"Blauwelle Kelpina",z:"Forest of Purification",c:240},
+{id:"asmo09",f:"asmo",n:"Advisor Resana",nd:"Berater Resana",z:"Dranactus",c:360},
+{id:"asmo10",f:"asmo",n:"High Overseer Nutah",nd:"Hauptaufseher Nutah",z:"Dranactus",c:240},
+{id:"asmo11",f:"asmo",n:"Special Operations Leader Linx",nd:"Sondereinsatzhauptmann Linx",z:"Basfelt Ruins",c:360},
+{id:"asmo12",f:"asmo",n:"Desecrator Newbold",nd:"Schänder Newbold",z:"Basfelt Ruins",c:480},
+{id:"asmo13",f:"asmo",n:"Specter Archon Axios",nd:"Schattenarchon Axios",z:"Basfelt Ruins",c:480},
+{id:"asmo14",f:"asmo",n:"Addicted Hardirun",nd:"Vergifteter Hadirun",z:"Pafnite Burial Ground",c:360},
+{id:"asmo15",f:"asmo",n:"Executioner Barthien",nd:"Henker Barthien",z:"Gribade Canyon West",c:480},
+{id:"asmo16",f:"asmo",n:"Drakan Battalion Weapon Guruta",nd:"Bataillonswaffe Guruta (Drakan)",z:"Gribade Canyon East",c:720},
+{id:"asmo17",f:"asmo",n:"Veteran Shujakan",nd:"Veteran Shujakan",z:"Black Claw Village",c:360},
+{id:"asmo18",f:"asmo",n:"Visionary Karuka",nd:"Visionärer Karuka",z:"Black Claw Village",c:480},
+{id:"asmo19",f:"asmo",n:"Dark Shadow Vishwada",nd:"Dunkelschatten Vishwada",z:"Ragta Fortress",c:720},
+{id:"asmo20",f:"asmo",n:"Sharp Shylak",nd:"Scharfer Shylak",z:"Impetusium Plaza",c:720},
+{id:"asmo21",f:"asmo",n:"Silent Dartan",nd:"Schweigender Dartan",z:"Forest of Purification",c:720 ,l:1},
+{id:"asmo22",f:"asmo",n:"Soul Ruler Kashapa",nd:"Seelenherrscher Kashapa",z:"Pafnite Burial Ground",c:720 ,l:1},
+{id:"asmo23",f:"asmo",n:"High Commander Lagta",nd:"Legat Lagta",z:"Ragta Fortress",c:1440 ,l:1},
+{id:"asmo24",f:"asmo",n:"Immortal Gartua",nd:"Unsterblicher Gartua",z:"Isle of Immortality",c:1440},
+{id:"abyss02",f:"abyss",n:"Argo, the Spirit King",nd:"Geisterfürst Agro",z:"Siel's Right Wing (Siel's Wing Islands)",c:1440}
+]
 
 const SVG = d => `<svg viewBox="0 0 16 16" width="14" height="14" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" aria-hidden="true"><path d="${d}"/></svg>`;
 const ICON = {minus:SVG("M3 8h10"), plus:SVG("M3 8h10M8 3v10"), x:SVG("M4 4l8 8M12 4l-8 8")};
@@ -659,7 +672,10 @@ function fmtDur(ms){
   if(h>0) return h+"h "+m+"m "+String(s).padStart(2,"0")+"s";
   return m+"m "+String(s).padStart(2,"0")+"s";
 }
-const fmtClock = date => date.toLocaleString(undefined,{weekday:"short",hour:"2-digit",minute:"2-digit",hour12:false});
+const fmtClock = date => {
+  const u=T(), p=n=>String(n).padStart(2,"0");
+  return u.daysShort[date.getDay()]+" "+p(date.getHours())+":"+p(date.getMinutes());
+};
 const statusOf = (b, off) => {
   const sn = Date.now() + off*MIN;
   const last = lastOcc(b.s, sn), next = nextOcc(b.s, sn);
@@ -728,8 +744,9 @@ const FACTIONS = [["elyos","tElyos"],["asmo","tAsmo"],["abyss","tAbyssF"]];
 function fbKill(id){ return (st.fkills||{})[id]; }
 /* live per-server kill feed (community data; proxied same-origin via /fbapi to avoid CORS) */
 const FB_SERVERS=[["Europe",[["eu-siel","Siel"],["eu-israphel","Israphel"],["eu-nezekan","Nezekan"],["eu-zikel","Zikel"],["eu-vaizel","Vaizel"],["eu-triniel","Triniel"],["eu-kaisinel","Kaisinel"],["eu-lumiel","Lumiel"],["eu-yustiel","Yustiel"],["eu-marchutan","Marchutan"],["eu-ariel","Ariel"],["eu-azphel","Azphel"],["eu-fregion","Fregion"],["eu-ereshkigal","Ereshkigal"],["eu-beritra","Beritra"]]],["NA East",[["nae-siel","Siel"],["nae-israphel","Israphel"],["nae-nezekan","Nezekan"],["nae-zikel","Zikel"],["nae-triniel","Triniel"]]],["NA West",[["naw-siel","Siel"],["naw-israphel","Israphel"],["naw-nezekan","Nezekan"],["naw-zikel","Zikel"]]],["South America",[["sa-siel","Siel"],["sa-israphel","Israphel"],["sa-nezekan","Nezekan"],["sa-zikel","Zikel"]]],["Korea",[["kr-ariel","Ariel"],["kr-azphel","Azphel"],["kr-baba","Baba"],["kr-bakarma","Bakarma"],["kr-beritra","Beritra"],["kr-daminu","Daminu"],["kr-ereshkigal","Ereshkigal"],["kr-fafnir","Fafnir"],["kr-fregion","Fregion"],["kr-hadala","Hadala"],["kr-hithanya","Hithanya"],["kr-indnath","Indnath"],["kr-ishalgen","Ishalgen"],["kr-ishtar","Ishtar"],["kr-israphel","Israphel"],["kr-kaisinel","Kaisinel"],["kr-kasaka","Kasaka"],["kr-kochi","Kochi"],["kr-kromede","Kromede"],["kr-ludra","Ludra"],["kr-lumiel","Lumiel"],["kr-luteros","Luteros"],["kr-marchutan","Marchutan"],["kr-meslamtaeda","Meslamtaeda"],["kr-munin","Munin"],["kr-nania","Nania"],["kr-nemon","Nemon"],["kr-nezekan","Nezekan"],["kr-odar","Odar"],["kr-phernos","Phernos"],["kr-poeta","Poeta"],["kr-quai","Quai"],["kr-siel","Siel"],["kr-tahavatha","Tahavatha"],["kr-tiamat","Tiamat"],["kr-triniel","Triniel"],["kr-tsenka","Tsenka"],["kr-ulgorn","Ulgorn"],["kr-vaizel","Vaizel"],["kr-yustiel","Yustiel"],["kr-zemurru","Zemurru"],["kr-zikel","Zikel"]]],["Taiwan",[["tw-ariel","Ariel"],["tw-azphel","Azphel"],["tw-baba","Baba"],["tw-bakarma","Bakarma"],["tw-beritra","Beritra"],["tw-daminu","Daminu"],["tw-ereshkigal","Ereshkigal"],["tw-fregion","Fregion"],["tw-hadala","Hadala"],["tw-hithanya","Hithanya"],["tw-israphel","Israphel"],["tw-kaisinel","Kaisinel"],["tw-kasaka","Kasaka"],["tw-kochi","Kochi"],["tw-kromede","Kromede"],["tw-ludra","Ludra"],["tw-lumiel","Lumiel"],["tw-luteros","Luteros"],["tw-marchutan","Marchutan"],["tw-meslamtaeda","Meslamtaeda"],["tw-munin","Munin"],["tw-nania","Nania"],["tw-nemon","Nemon"],["tw-nezekan","Nezekan"],["tw-odar","Odar"],["tw-phernos","Phernos"],["tw-quai","Quai"],["tw-siel","Siel"],["tw-tahavatha","Tahavatha"],["tw-triniel","Triniel"],["tw-tsenka","Tsenka"],["tw-ulgorn","Ulgorn"],["tw-vaizel","Vaizel"],["tw-yustiel","Yustiel"],["tw-zemurru","Zemurru"],["tw-zikel","Zikel"]]],["Japan",[["jp-siel","Siel"],["jp-israphel","Israphel"],["jp-nezekan","Nezekan"],["jp-zikel","Zikel"],["jp-vaizel","Vaizel"],["jp-triniel","Triniel"]]]];
+const FB_REGION_DE = {Europe:"Europa","NA East":"NA Ost","NA West":"NA West","South America":"S\u00fcdamerika",Korea:"Korea",Taiwan:"Taiwan",Japan:"Japan"};
 const FB_API = "/fbapi/api/fieldboss.php";
-let FB_FEED=null, FB_FEED_T0=0, FB_FEED_S0=0, FB_FEED_ERR=false;
+let FB_FEED=null, FB_FEED_T0=0, FB_FEED_S0=0, FB_FEED_ERR=false, FB_RETRY=null;
 const fbConv = ep => ep*1000 - FB_FEED_S0 + FB_FEED_T0;   // feed clock -> local clock
 const FB_KILLDELAY = 30*MIN;   // assume the boss dies 30 min after spawning -> the cycle keeps rolling on its own
 function fbState(b){
@@ -757,9 +774,10 @@ function renderFactions(){
     `<button data-f="${f}" class="${f===st.faction?'on':''}">${esc(u[label])}</button>`).join("");
   box.querySelectorAll("button").forEach(x=>x.onclick=()=>{ st.faction=x.dataset.f; save(); renderField(); });
 }
+const fbName = b => st.lang==="en" ? b.n : (b.nd||b.n);
 function fbView(b){
   const u=T(), s=fbState(b);
-  const cls = !s.known ? "" : (s.up ? "up" : "dead");
+  const cls = (!s.known ? "" : (s.up ? "up" : "dead")) + (b.l ? " leg" : "");
   let cd="—", sub="";
   if (s.known){
     if (s.up){ cd=u.tFUp; sub=(s.live?u.tSince:u.tUntil)+" "+fmtClock(new Date(s.until)); }
@@ -771,13 +789,14 @@ function fbView(b){
 function fbCard(b){
   const {u,s,cls,cd,sub}=fbView(b);
   const meta = esc(b.z)+" · "+esc(u.tEvery)+" "+fmtCycle(b.c)+(s.known?"":" · "+esc(u.tNoKill));
+  const star = b.l ? `<span class="fbstar">\u2605</span>` : "";
   const act = s.live
     ? `<span class="fblive">${esc(u.tLive)}</span>`
     : `<button class="kill" data-act="kill">${esc(u.tKill)}</button>`+
       (s.known?`<button class="clr" data-act="clr" title="${esc(u.tClr)}">${ICON.x}</button>`:"");
   return `<div class="fbcard ${cls}" data-id="${b.id}">
     <span class="fbstate"></span>
-    <div><div class="fbnm">${esc(b.n)}</div><div class="fbmeta">${meta}</div></div>
+    <div><div class="fbnm">${esc(fbName(b))}${star}</div><div class="fbmeta">${meta}</div></div>
     <div><div class="fbcd">${esc(cd)}</div><div class="fbsub">${sub}</div></div>
     <div class="fbact">${act}</div>
   </div>`;
@@ -787,8 +806,8 @@ function renderField(){
   renderSrv();
   renderFactions();
   const sortBtn=document.getElementById("fSort");
-  sortBtn.textContent = st.fsort==="next" ? u.tSortNext : u.tSortZone;
-  sortBtn.classList.toggle("on", st.fsort==="next");
+  sortBtn.textContent = st.fsort==="next" ? u.tSortNext : (st.fsort==="rar" ? u.tSortRar : u.tSortZone);
+  sortBtn.classList.toggle("on", st.fsort!=="zone");
   let list = FIELD_BOSSES.filter(b=>b.f===st.faction);
   document.getElementById("tFieldCount").textContent =
     list.filter(b=>fbState(b).up).length+"/"+list.length;
@@ -799,6 +818,13 @@ function renderField(){
       const va = sa.known ? (sa.up ? -1 : sa.spawn) : Infinity;
       const vb = sb.known ? (sb.up ? -1 : sb.spawn) : Infinity;
       return va-vb;
+    });
+    box.innerHTML = list.map(fbCard).join("");
+  } else if (st.fsort==="rar"){
+    list = list.slice().sort((a,b)=>{
+      const la=a.l?0:1, lb=b.l?0:1;
+      if (la!==lb) return la-lb;
+      return a.z.localeCompare(b.z) || a.n.localeCompare(b.n);
     });
     box.innerHTML = list.map(fbCard).join("");
   } else {
@@ -825,16 +851,17 @@ document.getElementById("tField").addEventListener("click", e=>{
   if (btn.dataset.act==="kill") st.fkills[id]=Date.now(); else delete st.fkills[id];
   save(); renderField();
 });
-document.getElementById("fSort").onclick=()=>{ st.fsort = st.fsort==="next"?"zone":"next"; save(); renderField(); };
+document.getElementById("fSort").onclick=()=>{ const o=["zone","next","rar"]; st.fsort = o[(o.indexOf(st.fsort)+1)%3]; save(); renderField(); };
 document.getElementById("fClear").onclick=()=>{ st.fkills={}; save(); renderField(); };
 
 /* ---- live feed plumbing ---- */
 function renderSrv(){
   const s=document.getElementById("fSrv"), u=T();
-  if(!s.options.length){
+  if(s.dataset.lang !== st.lang){          // rebuild when the UI language changes
     s.innerHTML = `<option value="">${esc(u.tSrvOff)}</option>`+
-      FB_SERVERS.map(([r,list])=>`<optgroup label="${esc(r)}">`+
+      FB_SERVERS.map(([r,list])=>`<optgroup label="${esc(st.lang==="en"?r:(FB_REGION_DE[r]||r))}">`+
         list.map(([id,nm])=>`<option value="${id}">${esc(nm)}</option>`).join("")+"</optgroup>").join("");
+    s.dataset.lang = st.lang;
   }
   s.value = st.fsrv||"";
   s.classList.toggle("on", !!st.fsrv);
@@ -857,9 +884,14 @@ function fbFetch(){
       if(!j || !j.ok || !j.kills) throw new Error("bad feed");
       FB_FEED=j.kills; FB_FEED_T0=Date.now();
       FB_FEED_S0=(j.now||Math.round(Date.now()/1000))*1000;
-      FB_FEED_ERR=false; renderField();
+      FB_FEED_ERR=false; clearTimeout(FB_RETRY); FB_RETRY=null; renderField();
     })
-    .catch(()=>{ FB_FEED_ERR=true; fbFeedNote(); });
+    .catch(()=>{
+      FB_FEED_ERR=true; fbFeedNote();
+      /* one quick retry so a transient blip (e.g. a proxy restart) does not
+         leave the error up for the whole 60s poll interval */
+      if(!FB_RETRY) FB_RETRY=setTimeout(()=>{ FB_RETRY=null; if(st.fsrv) fbFetch(); }, 5000);
+    });
 }
 document.getElementById("fSrv").onchange=e=>{
   st.fsrv=e.target.value; save();

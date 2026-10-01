@@ -19,7 +19,10 @@ No build step, no server, no external requests. Open `index.html` in a browser (
 - **Field bosses** — all 49 (24 Elyos, 24 Asmodian, 1 Abyss), grouped by zone
 - **Live mode:** pick your server and the timers come from a community kill feed — real `up`/`dead` state with actual spawn timestamps for every boss on that server, refreshed every 60 s. Values the feed is still estimating are marked `≈`
 - **Manual mode:** with no server selected, tap **Killed** when you kill one; the timer then keeps rolling on its own (assumes a kill 30 min after each spawn) so it stays roughly accurate without further input
-- Filter by faction, sort by zone or by next respawn, clear all manual timers at once
+- **Legendary-loot bosses** (Silent Dartan, Soul Ruler Kashapa, High Commander Lagta) are highlighted with a gold bar, gold name and a star
+- Filter by faction, sort by zone, by next respawn, or **by rarity**
+- Full German boss names and German region labels in the DE locale (English zone names are kept as-is — AION 2 is English-only and the community German translation does not rename zones)
+- Clear all manual timers at once
 - Optional panel for other timed events (Spacetime Rift, Shugo Festival, Dimensional Invasion)
 
 ## Usage
