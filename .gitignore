@@ -1,0 +1,10 @@
+# local deploy helper — contains host-specific paths/details, not for the repo
+sync-to-server.sh
+
+# OS / editor noise
+.DS_Store
+Thumbs.db
+*.swp
+*~
+.idea/
+.vscode/

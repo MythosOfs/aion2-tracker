@@ -1,0 +1,853 @@
+<!doctype html>
+<html lang="de">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<meta name="theme-color" content="#0e1016">
+<title>Aion 2 Tracker</title>
+<style>
+  :root{--bg:#0e1016;--card:#161922;--line:#232733;--txt:#e7e9f0;--dim:#7d8396;--acc:#8ab0ff;--ok:#5fd38d;--warn:#f0b35a;--live:#5fd38d}
+  *{box-sizing:border-box;-webkit-tap-highlight-color:transparent}
+  body{margin:0;font:15px/1.45 -apple-system,system-ui,sans-serif;background:var(--bg);color:var(--txt)}
+  .wrap{max-width:1100px;margin:0 auto;padding:0 16px 32px}
+  header{display:flex;flex-wrap:nowrap;gap:12px;align-items:center;justify-content:space-between;padding:20px 0 10px}
+  .timers{display:flex;gap:8px;flex-wrap:wrap;margin-bottom:8px}
+  h1{margin:0;font-size:19px;font-weight:650;letter-spacing:.2px}
+  .right{display:flex;gap:8px;align-items:center;flex-wrap:nowrap}
+  .chip{background:var(--card);border:1px solid var(--line);border-radius:999px;padding:5px 11px;font-size:12.5px;color:var(--dim);white-space:nowrap}
+  .chip b{color:var(--txt);font-weight:600;font-variant-numeric:tabular-nums;margin-left:4px}
+  .seg{display:flex;background:var(--card);border:1px solid var(--line);border-radius:999px;padding:2px}
+  .seg button{background:none;border:0;color:var(--dim);padding:4px 10px;border-radius:999px;font:600 12px system-ui;cursor:pointer}
+  .seg button.on{background:var(--acc);color:#0e1016}
+  .nav{display:flex;background:var(--card);border:1px solid var(--line);border-radius:999px;padding:2px}
+  .nav button{background:none;border:0;color:var(--dim);padding:5px 14px;border-radius:999px;font:600 13px system-ui;cursor:pointer}
+  .nav button.on{background:var(--acc);color:#0e1016}
+  .icon{background:var(--card);border:1px solid var(--line);color:var(--dim);width:32px;height:32px;border-radius:50%;cursor:pointer;font-size:15px}
+  .tabs{display:flex;gap:6px;flex-wrap:wrap;margin:4px 0}
+  .tab{background:none;border:1px solid var(--line);color:var(--dim);padding:5px 14px;border-radius:999px;cursor:pointer;font-size:13px}
+  .tab.active{border-color:var(--acc);color:var(--acc)}
+  /* collapse/expand: animate grid row 0fr -> 1fr */
+  .settings,.note{display:grid;grid-template-rows:0fr;opacity:0;transition:grid-template-rows .25s ease,opacity .2s ease}
+  .settings.open,.item.open .note{grid-template-rows:1fr;opacity:1}
+  .clip{overflow:hidden;min-height:0}
+  .box{display:flex;background:var(--card);border:1px solid var(--line);border-radius:14px;padding:14px;margin:4px 0 8px;gap:10px 16px;flex-wrap:wrap;align-items:center;font-size:13px;color:var(--dim)}
+  .icon{transition:transform .25s ease}
+  .icon.on{transform:rotate(60deg);color:var(--acc)}
+  @media (prefers-reduced-motion:reduce){.settings,.note,.icon,.name::after{transition:none!important}}
+  .settings label{display:flex;gap:6px;align-items:center}
+  #odyle{margin-top:10px}
+  .odtop{display:flex;align-items:center;justify-content:space-between;gap:10px}
+  .odlabel{font-size:12px;text-transform:uppercase;letter-spacing:.8px;color:var(--dim);font-weight:600}
+  .odbig{font-size:28px;font-weight:650;font-variant-numeric:tabular-nums;margin:4px 0 6px}
+  .odbig small{font-size:14px;color:var(--dim);font-weight:400;margin-left:2px}
+  #odyle.odfull .odbig{color:var(--warn)}
+  #odyle.odfull .bar i{background:var(--warn)}
+  .odmeta{color:var(--dim);font-size:12.5px;margin:2px 0 8px}
+  .odmeta b{color:var(--txt);font-weight:600;font-variant-numeric:tabular-nums}
+  .odbtns{display:flex;gap:6px}
+  .odbtns button{background:var(--bg);border:1px solid var(--line);color:var(--txt);border-radius:999px;padding:5px 11px;cursor:pointer;font-size:13px;font-variant-numeric:tabular-nums}
+  #odyle.nodata [data-spend]{display:none}
+  .odbtns .chev{width:30px;padding:0;font-size:18px;line-height:1;color:var(--dim);transition:transform .25s ease}
+  .odbtns .chev.on{transform:rotate(90deg);color:var(--acc)}
+  .odform .box{margin:4px 0 8px;padding:10px;background:var(--bg)}
+  .odform input{background:var(--card)!important}
+  #odAmt{width:72px} #odH,#odM{width:52px}
+  .odhint{font-size:12px;width:100%}
+  .odwarn{margin-top:8px;padding:7px 10px;border-radius:10px;background:rgba(240,179,90,.12);border:1px solid rgba(240,179,90,.35);color:var(--warn);font-size:12.5px;font-weight:600}
+  .chars{display:flex;gap:6px;align-items:center;flex-wrap:wrap;width:100%}
+  .cchip{display:inline-flex;align-items:center;gap:4px;background:var(--bg);border:1px solid var(--line);border-radius:999px;padding:3px 4px 3px 11px;color:var(--txt)}
+  .cchip button{border:0!important;background:none!important;color:var(--dim)!important;padding:0 6px!important;font-size:15px!important;line-height:1}
+  .add{display:inline-flex;gap:4px}
+  .add input{width:130px}
+  .add button{padding:5px 11px!important;font-weight:700}
+  .settings input,.settings select{background:var(--bg);border:1px solid var(--line);color:var(--txt);border-radius:8px;padding:5px 8px;font-size:13px}
+  .settings button{background:var(--bg);border:1px solid var(--line);color:var(--txt);border-radius:8px;padding:5px 12px;cursor:pointer;font-size:13px}
+  .settings button.primary{background:var(--acc);border-color:var(--acc);color:#0e1016;font-weight:600}
+  main{display:grid;grid-template-columns:repeat(auto-fit,minmax(300px,1fr));gap:14px;margin-top:10px}
+  section{background:var(--card);border:1px solid var(--line);border-radius:14px;padding:14px 14px 6px}
+  section h2{margin:0 0 8px;font-size:12px;text-transform:uppercase;letter-spacing:.8px;color:var(--dim);display:flex;justify-content:space-between;font-weight:600}
+  .bar{height:3px;background:var(--line);border-radius:2px;margin-bottom:4px;overflow:hidden}
+  .bar i{display:block;height:100%;background:var(--ok);transition:width .25s}
+  .item{border-top:1px solid var(--line);padding:10px 2px}
+  .item:first-of-type{border-top:0}
+  .row{display:flex;align-items:center;gap:12px}
+  .name{flex:1;cursor:pointer;user-select:none}
+  .item.done .name{color:var(--dim);text-decoration:line-through;text-decoration-color:#4a4f60}
+  .note p{margin:0;padding:6px 0 0 30px;color:var(--dim);font-size:12.5px}
+  .item.ctrrow .note p{padding-left:0}
+  .item.has .name::after{content:"›";color:#4a4f60;margin-left:7px;display:inline-block;transition:transform .15s}
+  .item.has.open .name::after{transform:rotate(90deg)}
+  input[type=checkbox]{appearance:none;-webkit-appearance:none;width:18px;height:18px;border:1.5px solid #4a4f60;border-radius:5px;margin:0;cursor:pointer;display:grid;place-content:center;flex:none}
+  input[type=checkbox]:checked{background:var(--ok);border-color:var(--ok)}
+  input[type=checkbox]:checked::after{content:"";width:5px;height:9px;border:solid #0e1016;border-width:0 2px 2px 0;transform:translateY(-1px) rotate(45deg)}
+  .ctr{display:flex;align-items:center;gap:2px;font-variant-numeric:tabular-nums}
+  .ctr button{width:28px;height:28px;border-radius:50%;border:0;background:var(--bg);color:var(--txt);cursor:pointer;font-size:16px;line-height:1}
+  /* icon buttons: SVG glyphs, flex-centered (text glyphs sit off-center) */
+  .ctr button,.odbtns .chev,.add button,.cchip button{display:inline-flex!important;align-items:center;justify-content:center;padding:0!important}
+  .ctr button svg,.odbtns .chev svg,.add button svg,.cchip button svg{display:block}
+  .odbtns .chev{width:30px;height:30px}
+  .add button{width:32px;height:30px}
+  .cchip button{width:22px;height:22px}
+  .ctr .v{min-width:42px;text-align:center;font-size:13px;color:var(--dim)}
+  .item.done .ctr .v{color:var(--ok)}
+
+  /* ---------- timers subpage ---------- */
+  .tclock{display:flex;gap:18px;flex-wrap:wrap;background:var(--card);border:1px solid var(--line);
+    border-radius:14px;padding:11px 15px;margin:10px 0 12px;font-size:13px;color:var(--dim)}
+  .tclock b{color:var(--txt);font-weight:600;font-variant-numeric:tabular-nums;margin-left:5px}
+  .tregions{display:flex;gap:6px;flex-wrap:wrap;margin-bottom:10px}
+  .tregions button{background:var(--card);border:1px solid var(--line);color:var(--dim);
+    padding:5px 13px;border-radius:999px;font:600 12.5px system-ui;cursor:pointer}
+  .tregions button.on{background:rgba(138,176,255,.16);border-color:var(--acc);color:var(--txt)}
+  .tog{display:inline-flex;align-items:center;gap:7px;color:var(--dim);font-size:12.5px;margin:2px 0 6px;cursor:pointer;user-select:none}
+  .tog input{width:16px;height:16px;border-radius:5px}
+  .tsec{background:var(--card);border:1px solid var(--line);border-radius:14px;padding:14px 14px 8px;margin-top:14px}
+  .tsec>h2{margin:0 0 6px}
+  .tcard{display:grid;grid-template-columns:auto 1fr auto;gap:12px;align-items:center;
+    border-top:1px solid var(--line);padding:10px 2px}
+  .tcard:first-of-type{border-top:0}
+  .tdot{width:9px;height:9px;border-radius:50%;background:#5c667a;flex:none}
+  .tcard.up .tdot{background:var(--live);box-shadow:0 0 0 4px rgba(95,211,141,.15)}
+  .tcard.soon .tdot{background:var(--warn);box-shadow:0 0 0 4px rgba(240,179,90,.13)}
+  .tnm{font-weight:600}
+  .tzone{color:var(--dim);font-size:11.5px;margin-top:1px}
+  .tsched{color:var(--dim);font-size:11.5px;margin-top:2px}
+  .tright{text-align:right;min-width:150px}
+  .tcd{font-variant-numeric:tabular-nums;font-weight:650;font-size:15px;color:var(--txt)}
+  .tcard.up .tcd{color:var(--live)}
+  .tcard.soon .tcd{color:var(--warn)}
+  .tlbl{font-size:10.5px;text-transform:uppercase;letter-spacing:.6px;color:var(--dim)}
+  .tat{font-size:11px;color:var(--dim);margin-top:2px;font-variant-numeric:tabular-nums}
+  .tat a{color:var(--acc);text-decoration:none}
+  .tbar{grid-column:1/-1;height:3px;background:var(--line);border-radius:2px;overflow:hidden;margin-top:8px}
+  .tbar i{display:block;height:100%;background:var(--warn);width:0}
+  .tcard.up .tbar i{background:var(--live)}
+  .tbadge{display:inline-block;font-size:10px;font-weight:700;letter-spacing:.5px;padding:2px 7px;border-radius:6px;margin-left:6px;vertical-align:1px;background:rgba(95,211,141,.18);color:var(--live)}
+  .tfoot{color:var(--dim);font-size:11px;margin-top:16px;line-height:1.6}
+  .tfoot a{color:var(--acc);text-decoration:none}
+  /* field bosses (kill-based respawn) */
+  .fhint{color:var(--dim);font-size:11.5px;margin:2px 0 8px;line-height:1.5}
+  .factions{display:flex;gap:6px;flex-wrap:wrap;margin:0 0 8px}
+  .factions button{background:var(--bg);border:1px solid var(--line);color:var(--dim);
+    padding:4px 12px;border-radius:999px;font:600 12px system-ui;cursor:pointer}
+  .factions button.on{background:rgba(138,176,255,.16);border-color:var(--acc);color:var(--txt)}
+  .fbtools{display:flex;gap:8px;align-items:center;flex-wrap:wrap;margin-bottom:6px}
+  .fbtools button{background:var(--bg);border:1px solid var(--line);color:var(--dim);
+    padding:4px 10px;border-radius:8px;font:500 12px system-ui;cursor:pointer}
+  .fbtools button.on{color:var(--txt);border-color:var(--acc)}
+  .fbzone{color:var(--faint);font-size:10.5px;text-transform:uppercase;letter-spacing:.7px;
+    margin:10px 0 2px;font-weight:700}
+  .fbcard{display:grid;grid-template-columns:auto 1fr auto auto;gap:10px;align-items:center;
+    border-top:1px solid var(--line);padding:8px 2px}
+  .fbcard.up .fbstate{background:var(--ok);box-shadow:0 0 0 4px rgba(95,211,141,.15)}
+  .fbcard.soon .fbstate{background:var(--warn)}
+  .fbstate{width:9px;height:9px;border-radius:50%;background:#4a5060;flex:none}
+  .fbnm{font-weight:600;font-size:14px}
+  .fbmeta{color:var(--dim);font-size:11.5px;margin-top:1px}
+  .fbcd{font-variant-numeric:tabular-nums;font-weight:650;font-size:14px;text-align:right;min-width:104px}
+  .fbsub{font-size:10.5px;color:var(--dim);text-align:right;margin-top:1px;font-variant-numeric:tabular-nums}
+  .fbcard.up .fbcd{color:var(--ok)}
+  .fbcard.soon .fbcd{color:var(--warn)}
+  .fbcard.dead .fbcd{color:var(--txt)}
+  .fbact{display:flex;gap:4px}
+  .fbact button{width:30px;height:30px;border-radius:8px;border:1px solid var(--line);
+    background:var(--bg);color:var(--dim);cursor:pointer;display:inline-flex;align-items:center;
+    justify-content:center;padding:0}
+  .fbact button.kill{width:auto;padding:0 11px;font:600 12px system-ui;color:var(--txt)}
+  .fbact button.kill:hover{border-color:var(--ok);color:var(--ok)}
+  .fbact button.clr:hover{border-color:#e0556e;color:#e0556e}
+  .hidden{display:none!important}
+</style>
+</head>
+<body>
+<div class="wrap">
+<header>
+  <h1>Aion 2 Tracker</h1>
+  <div class="right">
+    <div class="nav" id="nav">
+      <button data-page="checklist" data-i="navCl"></button>
+      <button data-page="timers" data-i="navTm"></button>
+    </div>
+    <div class="seg"><button data-lang="de">DE</button><button data-lang="en">EN</button></div>
+    <button class="icon" id="gear" aria-label="Settings">⚙</button>
+  </div>
+</header>
+
+<!-- ================= subpage: checklist ================= -->
+<div id="viewChecklist">
+  <div class="timers">
+    <span class="chip"><span data-i="daily"></span><b id="tDaily">–</b></span>
+    <span class="chip"><span data-i="weekly"></span><b id="tWeekly">–</b></span>
+  </div>
+  <div class="settings" id="settings"><div class="clip"><div class="box">
+    <label><span data-i="reset"></span> <select id="cfgDay"></select> <input id="cfgHour" type="number" min="0" max="23" style="width:56px"> <span data-i="oclock"></span></label>
+    <div class="chars"><span data-i="chars"></span> <span id="charList"></span>
+      <span class="add"><input id="newChar" maxlength="24"><button id="addChar" aria-label="Add"><svg viewBox="0 0 16 16" width="14" height="14" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M3 8h10M8 3v10"/></svg></button></span></div>
+    <button class="primary" id="save" data-i="save"></button>
+    <button id="resetD" data-i="clearD"></button>
+    <button id="resetW" data-i="clearW"></button>
+  </div></div></div>
+  <div class="tabs" id="tabs"></div>
+  <section id="odyle">
+    <div class="odtop">
+      <span class="odlabel" data-i="odT"></span>
+      <div class="odbtns"><button data-spend="40">−40</button><button data-spend="80">−80</button><button id="odEdit" class="chev" aria-label="Toggle"><svg viewBox="0 0 16 16" width="14" height="14" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M6 3.5 10.5 8 6 12.5"/></svg></button></div>
+    </div>
+    <div id="odView"></div>
+    <div class="settings odform" id="odForm"><div class="clip"><div class="box">
+      <label><span data-i="odAmt"></span> <input id="odAmt" type="number" inputmode="numeric" min="0" max="840"></label>
+      <label><span data-i="odNext"></span> <input id="odH" type="number" inputmode="numeric" min="0" max="2" placeholder="h"> h <input id="odM" type="number" inputmode="numeric" min="0" max="59" placeholder="min"> min</label>
+      <button class="primary" id="odSave" data-i="odSave"></button>
+      <span class="odhint" data-i="odHint"></span>
+    </div></div></div>
+  </section>
+  <main id="main"></main>
+</div>
+
+<!-- ================= subpage: timers ================= -->
+<div id="viewTimers" class="hidden">
+  <div class="tclock">
+    <div><span data-i="tLocal"></span> <b id="tLocalV">–</b></div>
+    <div><span data-i="tServer"></span> <b id="tServerV">–</b></div>
+  </div>
+  <label class="tog"><input type="checkbox" id="tShowEv"> <span data-i="tShowEv"></span></label>
+  <div class="tsec hidden" id="tEvSec">
+    <h2><span data-i="tEvents"></span></h2>
+    <div id="tEvents"></div>
+  </div>
+  <div class="tsec">
+    <h2><span data-i="tField"></span><span id="tFieldCount"></span></h2>
+    <div class="factions" id="factions"></div>
+    <div class="fbtools">
+      <button id="fSort" data-i="tSortNext"></button>
+      <button id="fClear" data-i="tClrAll"></button>
+    </div>
+    <div class="fhint" data-i="tFHint"></div>
+    <div id="tField"></div>
+  </div>
+  <div class="tfoot"><span data-i="tFoot"></span> <a href="https://www.aion2timers.com/world-boss-timer/" target="_blank" rel="noopener">aion2timers.com</a></div>
+</div>
+</div>
+
+<script>
+const UI = {
+  de:{navCl:"Checkliste", navTm:"Timers",
+      daily:"Täglich", weekly:"Wöchentlich", reset:"Wöchentlicher Reset", oclock:"Uhr",
+      chars:"Charaktere", save:"Speichern", clearD:"Dailies zurücksetzen", clearW:"Weeklies zurücksetzen",
+      dAcc:"Täglich · Server", dChar:"Täglich · ", wAcc:"Wöchentlich · Server", wChar:"Wöchentlich · ",
+      days:["Sonntag","Montag","Dienstag","Mittwoch","Donnerstag","Freitag","Samstag"],
+      daysShort:["So","Mo","Di","Mi","Do","Fr","Sa"], d:"T", ph:"Main, Twink", char:"Charakter",
+      odT:"Odyle-Energie", odAmt:"Aktuell", odNext:"Nächster Refill in", odSave:"Übernehmen",
+      odHint:"Refill optional.", odIn:"+15 in", odFull:"Voll in", odFullNow:"Voll – ausgeben!",
+      odEmpty:"Trag deinen aktuellen Stand ein.", season:"Saison · Server", odWarn:"Läuft in unter 24 Std. voll – bald ausgeben!",
+      tLocal:"Lokal", tServer:"Server (GMT+9)", tEvents:"Weitere Timer",
+      tUp:"JETZT", tSpawned:"aktiv", tSpawnsIn:"spawnt in", tUntil:"bis", tAt:"um",
+      tShowEv:"auch Rift & Events zeigen", tEveryHour:"Jede Stunde zur Minute :", tRespawn:"Respawn alle",
+      tFrom:"ab", tServerSuffix:"Serverzeit", tMap:"Karte", tNone:"keine",
+      tField:"Feldbosse", tElyos:"Elyos", tAsmo:"Asmodian", tAbyssF:"Abyss",
+      tFHint:"Feldbosse spawnt nach dem Kill neu. Kill eintragen — danach läuft der Timer automatisch weiter (angenommen: Kill 30 Min nach Spawn). Nur in diesem Browser gespeichert.",
+      tKill:"Erlegt", tClr:"Timer löschen", tClrAll:"Alle Timer löschen", tNoKill:"kein Kill erfasst",
+      tEvery:"alle", tFUp:"oben", tFSoon:"spawnt in", tSortZone:"nach Zone", tSortNext:"nach Respawn",
+      tFoot:"Feldboss-Daten aus Community-Quellen (aion2timers.com) · Respawn-Zyklen können sich mit Patches ändern. Quelle:"},
+  en:{navCl:"Checklist", navTm:"Timers",
+      daily:"Daily", weekly:"Weekly", reset:"Weekly reset", oclock:":00",
+      chars:"Characters", save:"Save", clearD:"Reset dailies", clearW:"Reset weeklies",
+      dAcc:"Daily · Server", dChar:"Daily · ", wAcc:"Weekly · Server", wChar:"Weekly · ",
+      days:["Sunday","Monday","Tuesday","Wednesday","Thursday","Friday","Saturday"],
+      daysShort:["Sun","Mon","Tue","Wed","Thu","Fri","Sat"], d:"d", ph:"Main, Alt", char:"Character",
+      odT:"Odyle Energy", odAmt:"Current", odNext:"Next refill in", odSave:"Apply",
+      odHint:"Refill optional.", odIn:"+15 in", odFull:"Full in", odFullNow:"Full – spend it!",
+      odEmpty:"Enter your current amount.", season:"Season · Server", odWarn:"Caps in under 24h – spend soon!",
+      tLocal:"Local", tServer:"Server (GMT+9)", tEvents:"Other Timers",
+      tUp:"UP", tSpawned:"spawned", tSpawnsIn:"spawns in", tUntil:"until", tAt:"at",
+      tShowEv:"also show Rift & events", tEveryHour:"Every hour at :", tRespawn:"Respawns every",
+      tFrom:"from", tServerSuffix:"server", tMap:"map", tNone:"none",
+      tField:"Field Bosses", tElyos:"Elyos", tAsmo:"Asmodian", tAbyssF:"Abyss",
+      tFHint:"Field bosses respawn on a fixed cycle after being killed. Log a kill — the timer then keeps rolling on its own (assumes a kill 30 min after each spawn). Stored in this browser only.",
+      tKill:"Killed", tClr:"Clear timer", tClrAll:"Clear all timers", tNoKill:"no kill logged",
+      tEvery:"every", tFUp:"up", tFSoon:"respawns in", tSortZone:"by zone", tSortNext:"by respawn",
+      tFoot:"Field boss data from community sources (aion2timers.com) · respawn cycles can change with patches. Source:"},
+};
+
+// s: "acc" = once per account, "char" = per character · name/note: [de, en]
+// notes stay hidden until the task name is tapped
+const TASKS = [
+  {id:"duty",t:"d",s:"acc",max:5, name:["Tägliche Pflichten","Daily Duties"],
+   note:["Belohnung: Abyss-Punkte (für Stigma-Splitter). Serverweit, nur auf dem Main.","Reward: Abyss Points (for Stigma Shards). Server-wide, main only."]},
+  {id:"emsup",t:"d",s:"acc", name:["Notfall-Versorgungsaufträge","Emergency Supply Requests"],
+   note:["Gear, Sammelmaterial o. Ä. abgeben. Belohnung: Abyss-Punkte (für Stigma-Splitter).","Turn in gear, gathering materials etc. Reward: Abyss Points (for Stigma Shards)."]},
+  {id:"shugo",t:"w",s:"acc",max:14, name:["Shugo-Festival","Shugo Festival"],
+   note:["Accountweit. Shop: Wisdom Stones (Skill-Level).","Account-wide. Shop: Wisdom Stones (skill levels)."]},
+  {id:"inv",t:"w",s:"acc",max:7, name:["Invasion","Invasion"]},
+  {id:"conq",t:"w",s:"char",max:14, name:["Expedition / Eroberung","Expedition / Conquest"],
+   note:["Drops: Potential-Steine und Philosophensteine. Kostet Odyle. Limit für Global unklar, im Spiel prüfen.","Drops: Potential Stones and Philosopher's Stones. Costs Odyle. Global limit unclear, check in-game."]},
+  {id:"trans",t:"w",s:"char",max:7, name:["Transzendenz","Transcendence"],
+   note:["Drops: Arcana-Karten, Training-Arcana und Kristallsplitter (zum Craften von Arcana). Kostet Odyle. Limit für Global unklar, im Spiel prüfen.","Drops: Arcana Cards, Training Arcana and Crystal Shards (for crafting Arcana). Costs Odyle. Global limit unclear, check in-game."]},
+  {id:"odyle",t:"w",s:"char",max:21, name:["Odyle-Energie ausgeben","Spend Odyle Energy"],
+   note:["Für Belohnungstruhen in Expeditionen (inkl. Eroberung), Transzendenz und Sanctum.","For reward chests in Expeditions (incl. Conquest), Transcendence and Sanctum."]},
+  {id:"nm",t:"w",s:"char",max:14, name:["Albtraum","Nightmare"],
+   note:["Ab Level 45. Shop: Wisdom Stones (Skill-Level).","Level 45+. Shop: Wisdom Stones (skill levels)."]},
+
+  {id:"dd",t:"w",s:"acc",max:14, name:["Tägliches Dungeon","Daily Dungeon"],
+   note:["Wochenlimit, nur auf dem Main. Am besten später in der Woche.","Weekly limit, main only. Best later in the week."]},
+  {id:"pveq",t:"w",s:"acc",max:12, name:["Wochenaufträge PvE","Weekly Commands PvE"],
+   note:["Belohnung: Abyss-Punkte. Beim Befehlshändler in der Hauptstadt kaufen.","Reward: Abyss Points. Buy from the Command Merchant in the capital."]},
+  {id:"pvpq",t:"w",s:"acc",max:20, name:["Wochenaufträge PvP","Weekly Commands PvP"],
+   note:["Belohnung: Abyss-Punkte. Beim Befehlshändler im Abyss kaufen.","Reward: Abyss Points. Buy from the Command Merchant in the Abyss."]},
+  {id:"wsup",t:"w",s:"acc", name:["Wöchentliche Versorgungsaufträge","Weekly Supply Requests"],
+   note:["Gear, Sammelmaterial o. Ä. abgeben. Belohnung: Abyss-Punkte.","Turn in gear, gathering materials etc. Reward: Abyss Points."]},
+  {id:"ssup",t:"s",s:"acc", name:["Saison-Versorgungsaufträge","Seasonal Supply Requests"],
+   note:["Laufen die ganze Saison, kein Wochenreset. Belohnung: Abyss-Punkte.","Last the whole season, no weekly reset. Reward: Abyss Points."]},
+  {id:"morphA",t:"w",s:"acc",max:16, name:["Odyle umwandeln","Odyle Substance Morph"]},
+  {id:"subshop",t:"w",s:"acc", name:["Abo-Shop","Subscriber Shop"],
+   note:["Wind-Breeze-Händler: Dungeon-Tickets und Seelenkristalle.","Wind Breeze Merchant: dungeon tickets and Soul Crystals."]},
+  {id:"abyss",t:"w",s:"acc",max:2, name:["Abyss-Artefaktschlachten","Abyss Artifact Battles"],
+   note:["Etwa Mittwoch und Samstag.","Around Wednesday and Saturday."]},
+  {id:"sanct",t:"w",s:"acc",max:2, name:["Sanctum","Sanctum"],
+   note:["10-Spieler-Raid.","10-player raid."]},
+  {id:"asc",t:"w",s:"char",max:3, name:["Aufstiegsprüfung","Ascension Trial"],
+   note:["Für später in der Woche aufheben.","Save for later in the week."]},
+  {id:"bf",t:"w",s:"char",max:3, name:["Schlachtfeld-Siege","Battlefield Wins"]},
+  {id:"morphC",t:"w",s:"char",max:4, name:["Odyle umwandeln","Odyle Substance Morph"]},
+  {id:"subOd",t:"w",s:"char",max:4, name:["Abo-Shop Odyle","Subscriber Shop Odyle"]},
+];
+
+/* ---- other timed events (global schedule, server clock GMT+9) ---- */
+const SRV_OFFSET = 540;   // minutes; global servers run on GMT+9
+const EXTRA_SCHED = [
+  {id:"rift",     name:["Spacetime Rift","Spacetime Rift"], zone:["Fraktionsevent","Faction event"], s:{type:"interval",everyMin:180,anchor:"02:00"}, dur:60},
+  {id:"shugo",    name:["Shugo-Festival","Shugo Festival"], zone:["Minispiele","Minigames"],           s:{type:"hourly",minute:0},  dur:10},
+  {id:"invasion", name:["Dimensionale Invasion","Dimensional Invasion"], zone:["Feld-Event","Field event"], s:{type:"hourly",minute:30}, dur:13},
+];
+
+const FIELD_BOSSES = [
+  {id:"elyos01",f:"elyos",n:"Kernon of the West",z:"Cantas Valley",c:60},
+  {id:"elyos02",f:"elyos",n:"Neikel of the East",z:"Cantas Valley",c:60},
+  {id:"elyos03",f:"elyos",n:"Rotten Kutar",z:"Elun River Swamp",c:60},
+  {id:"elyos04",f:"elyos",n:"Blooming Korin",z:"Elun River Midstream",c:120},
+  {id:"elyos05",f:"elyos",n:"Bodyguard Teegant",z:"Fortress Ruins",c:180},
+  {id:"elyos06",f:"elyos",n:"Kusan the Mad Gladiator",z:"Fortress Ruins",c:240},
+  {id:"elyos07",f:"elyos",n:"Ritualist Garshim",z:"Fortress Ruins",c:240},
+  {id:"elyos08",f:"elyos",n:"Bloodfang Pnyn",z:"Tolbas Forest",c:360},
+  {id:"elyos09",f:"elyos",n:"Furious Saursus",z:"Tolbas Forest",c:360},
+  {id:"elyos10",f:"elyos",n:"Scholar Aulla",z:"Aulau Village",c:240},
+  {id:"elyos11",f:"elyos",n:"Chaser Taulo",z:"Aulau Village",c:240},
+  {id:"elyos12",f:"elyos",n:"Forest Warrior Aullamu",z:"Aulau Village",c:480},
+  {id:"elyos13",f:"elyos",n:"Heretic Layla",z:"Artamia Plateau",c:360},
+  {id:"elyos14",f:"elyos",n:"Black Tentacle Lawa",z:"Artamia Gorge",c:480},
+  {id:"elyos15",f:"elyos",n:"Centurion Demiros",z:"Artamia Plateau",c:480},
+  {id:"elyos16",f:"elyos",n:"Divine Ansas",z:"Artamia Plateau",c:720},
+  {id:"elyos17",f:"elyos",n:"Harvest Manager Moshav",z:"Drana Plantation",c:360},
+  {id:"elyos18",f:"elyos",n:"Sentinel K'nash",z:"Drana Plantation",c:480},
+  {id:"elyos19",f:"elyos",n:"Researcher Setram",z:"Nahid Legion Fortress",c:720},
+  {id:"elyos20",f:"elyos",n:"Phantasm Kasia",z:"Garden of the Illusion God",c:720},
+  {id:"elyos21",f:"elyos",n:"Silent Dartan",z:"Artamia Plateau South",c:720},
+  {id:"elyos22",f:"elyos",n:"Soul Ruler Kashapa",z:"Artamia Plateau East",c:720},
+  {id:"elyos23",f:"elyos",n:"High Commander Lagta",z:"Red Forest",c:1440},
+  {id:"elyos24",f:"elyos",n:"Eternal Gartua",z:"Isle of Eternity",c:1440},
+  {id:"asmo01",f:"asmo",n:"Melted Danar",z:"Dredgion Crash Site",c:60},
+  {id:"asmo02",f:"asmo",n:"Black Warrior Aed",z:"Nameless Graveyard",c:60},
+  {id:"asmo03",f:"asmo",n:"Faithful Rajit",z:"Sanctuary Watch Post",c:60},
+  {id:"asmo04",f:"asmo",n:"Berserker Vargor",z:"Sanctuary Watch Post",c:120},
+  {id:"asmo05",f:"asmo",n:"Blood Warrior Lannar",z:"Moslan Forest",c:180},
+  {id:"asmo06",f:"asmo",n:"Predator Garsan",z:"Moslan Forest",c:240},
+  {id:"asmo07",f:"asmo",n:"Deceiver Trid",z:"Urtumheim",c:240},
+  {id:"asmo08",f:"asmo",n:"Blue Wave Kelpina",z:"Forest of Purification",c:240},
+  {id:"asmo09",f:"asmo",n:"Advisor Resana",z:"Dranactus",c:360},
+  {id:"asmo10",f:"asmo",n:"High Overseer Nutah",z:"Dranactus",c:240},
+  {id:"asmo11",f:"asmo",n:"Special Operations Leader Linx",z:"Basfelt Ruins",c:360},
+  {id:"asmo12",f:"asmo",n:"Desecrator Newbold",z:"Basfelt Ruins",c:480},
+  {id:"asmo13",f:"asmo",n:"Specter Archon Axios",z:"Basfelt Ruins",c:480},
+  {id:"asmo14",f:"asmo",n:"Addicted Hardirun",z:"Pafnite Burial Ground",c:360},
+  {id:"asmo15",f:"asmo",n:"Executioner Barthien",z:"Gribade Canyon West",c:480},
+  {id:"asmo16",f:"asmo",n:"Drakan Battalion Weapon Guruta",z:"Gribade Canyon East",c:720},
+  {id:"asmo17",f:"asmo",n:"Veteran Shujakan",z:"Black Claw Village",c:360},
+  {id:"asmo18",f:"asmo",n:"Visionary Karuka",z:"Black Claw Village",c:480},
+  {id:"asmo19",f:"asmo",n:"Dark Shadow Vishwada",z:"Ragta Fortress",c:720},
+  {id:"asmo20",f:"asmo",n:"Sharp Shylak",z:"Impetusium Plaza",c:720},
+  {id:"asmo21",f:"asmo",n:"Silent Dartan",z:"Forest of Purification",c:720},
+  {id:"asmo22",f:"asmo",n:"Soul Ruler Kashapa",z:"Pafnite Burial Ground",c:720},
+  {id:"asmo23",f:"asmo",n:"High Commander Lagta",z:"Ragta Fortress",c:1440},
+  {id:"asmo24",f:"asmo",n:"Immortal Gartua",z:"Isle of Immortality",c:1440},
+  {id:"abyss02",f:"abyss",n:"Argo, the Spirit King",z:"Siel's Right Wing (Siel's Wing Islands)",c:1440},
+];
+
+const SVG = d => `<svg viewBox="0 0 16 16" width="14" height="14" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" aria-hidden="true"><path d="${d}"/></svg>`;
+const ICON = {minus:SVG("M3 8h10"), plus:SVG("M3 8h10M8 3v10"), x:SVG("M4 4l8 8M12 4l-8 8")};
+const COOKIE = "aion2cl";
+const OD_MAX = 840, OD_TICK = 15, OD_INT = 3*3600e3; // +15 every 3h, cap 840
+let odChar = null;
+let st = load();
+let cur = st.chars[0];
+const open = new Set();
+const L = () => st.lang==="en" ? 1 : 0;
+const T = () => UI[st.lang==="en"?"en":"de"];
+const esc = s => String(s).replace(/[&<>"]/g,ch=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;"}[ch]));
+
+function load(){
+  const m = document.cookie.match(new RegExp("(?:^|; )"+COOKIE+"=([^;]*)"));
+  let s = null;
+  try { s = m ? JSON.parse(decodeURIComponent(m[1])) : null } catch(e){}
+  return Object.assign({chars:["Main"], day:3, hour:10, v:{}, ld:0, lw:0, lang:"de", od:{}, page:"checklist", region:"eu", showEv:false, faction:"elyos", fsort:"zone", fkills:{}}, s||{});
+}
+function save(){
+  document.cookie = COOKIE+"="+encodeURIComponent(JSON.stringify(st))+"; max-age=31536000; path=/; SameSite=Lax";
+}
+
+function lastDaily(now=new Date()){
+  const d = new Date(now); d.setHours(st.hour,0,0,0);
+  if (d > now) d.setDate(d.getDate()-1);
+  return d;
+}
+function lastWeekly(now=new Date()){
+  const d = lastDaily(now);
+  while (d.getDay() !== st.day) d.setDate(d.getDate()-1);
+  return d;
+}
+function autoReset(){
+  const ld = +lastDaily(), lw = +lastWeekly();
+  let ch = false;
+  if (st.ld < ld){ clear("d"); st.ld = ld; ch = true; }
+  if (st.lw < lw){ clear("w"); st.lw = lw; ch = true; }
+  if (ch){ save(); render(); }
+}
+function clear(t){
+  for (const k of Object.keys(st.v)){
+    const task = TASKS.find(x=>x.id===k.split("|")[1]);
+    if (!task || task.t===t) delete st.v[k];
+  }
+}
+
+const key = t => (t.s==="acc" ? "_acc" : cur) + "|" + t.id;
+const val = t => st.v[key(t)] || 0;
+const done = t => val(t) >= (t.max||1);
+
+/* ---------------- top-level page routing ---------------- */
+function setPage(p){
+  st.page = p; save();
+  document.getElementById("viewChecklist").classList.toggle("hidden", p!=="checklist");
+  document.getElementById("viewTimers").classList.toggle("hidden", p!=="timers");
+  document.getElementById("gear").classList.toggle("hidden", p!=="checklist");
+  if (p!=="checklist") toggleSettings(false);
+  document.querySelectorAll("#nav button").forEach(b=>b.classList.toggle("on", b.dataset.page===p));
+  if (p==="checklist") renderChecklist(); else renderTimers();
+  try { history.replaceState(null,"", p==="timers" ? "#timers" : "#checklist"); } catch(e){}
+}
+
+function render(){
+  const u = T(), l = L();
+  document.documentElement.lang = st.lang;
+  document.title = l ? "Aion 2 Tracker" : "Aion 2 Tracker";
+  document.querySelectorAll("[data-i]").forEach(e=>e.textContent = u[e.dataset.i]);
+  document.querySelectorAll("[data-lang]").forEach(b=>b.classList.toggle("on", b.dataset.lang===(st.lang||"de")));
+  document.getElementById("newChar").placeholder = u.ph;
+  setPage(st.page==="timers" ? "timers" : "checklist");
+}
+
+/* ---------------- checklist subpage ---------------- */
+function renderChecklist(){
+  const u = T(), l = L();
+  const tabs = document.getElementById("tabs");
+  tabs.innerHTML = "";
+  if (st.chars.length > 1) for (const c of st.chars){
+    const b = document.createElement("button");
+    b.className = "tab"+(c===cur?" active":""); b.textContent = c;
+    b.onclick = ()=>{ cur=c; renderChecklist(); };
+    tabs.appendChild(b);
+  }
+  if (odChar !== cur){ // character switched: reset Odyle form, open it if no data yet
+    odChar = cur;
+    ["odAmt","odH","odM"].forEach(id=>document.getElementById(id).value="");
+    document.getElementById("odForm").classList.toggle("open", !odNow());
+    syncChev();
+  }
+  const charLabel = st.chars.length > 1 ? cur : u.char;
+  const main = document.getElementById("main");
+  main.innerHTML = "";
+  const groups = [["d","acc",u.dAcc],["d","char",u.dChar+u.char],["w","acc",u.wAcc],["w","char",u.wChar+u.char],["s","acc",u.season]];
+  for (const [t,s,title] of groups){
+    const list = TASKS.filter(x=>x.t===t && x.s===s);
+    if (!list.length) continue; // hide empty sections
+    const n = list.filter(done).length;
+    const sec = document.createElement("section");
+    // interpolated strings are escaped (char names are user input)
+    sec.innerHTML = `<h2><span>${esc(title)}</span><span>${n}/${list.length}</span></h2><div class="bar"><i style="width:${100*n/list.length}%"></i></div>`;
+    for (const task of list){
+      const multi = task.max && task.max>1;
+      const item = document.createElement("div");
+      item.className = "item"+(done(task)?" done":"")+(task.note?" has":"")+(open.has(task.id)?" open":"")+(multi?" ctrrow":"");
+      const name = `<div class="name">${esc(task.name[l])}</div>`;
+      const note = task.note ? `<div class="note"><div class="clip"><p>${esc(task.note[l])}</p></div></div>` : "";
+      item.innerHTML = multi
+        ? `<div class="row">${name}<div class="ctr"><button data-d="-1" aria-label="-">${ICON.minus}</button><span class="v">${val(task)}/${task.max}</span><button data-d="1" aria-label="+">${ICON.plus}</button></div></div>${note}`
+        : `<div class="row"><input type="checkbox" ${done(task)?"checked":""}>${name}</div>${note}`;
+      if (multi){
+        item.querySelectorAll("button").forEach(b=>b.onclick=()=>{
+          st.v[key(task)] = Math.max(0, Math.min(task.max, val(task)+ +b.dataset.d)); save(); renderChecklist();
+        });
+      } else {
+        item.querySelector("input").onchange=e=>{ st.v[key(task)] = e.target.checked?1:0; save(); renderChecklist(); };
+      }
+      item.querySelector(".name").onclick=()=>{
+        // toggle class in place (no re-render) so the CSS transition can run
+        if (task.note){ open.has(task.id) ? open.delete(task.id) : open.add(task.id); item.classList.toggle("open"); }
+        else if (!multi){ st.v[key(task)] = done(task)?0:1; save(); renderChecklist(); }
+      };
+      sec.appendChild(item);
+    }
+    main.appendChild(sec);
+  }
+  const sel = document.getElementById("cfgDay");
+  sel.innerHTML = u.days.map((d,i)=>`<option value="${i}" ${i===st.day?"selected":""}>${d}</option>`).join("");
+  document.getElementById("cfgHour").value = st.hour;
+  renderChars();
+  tickChecklist(true);
+}
+
+function fmt(ms){
+  const s = Math.floor(ms/1000), d = Math.floor(s/86400), h = Math.floor(s%86400/3600), m = Math.floor(s%3600/60);
+  return d ? d+T().d+" "+h+"h" : h+"h "+String(m).padStart(2,"0")+"m";
+}
+function tickChecklist(noReset){
+  const now = new Date();
+  const nd = new Date(lastDaily(now)); nd.setDate(nd.getDate()+1);
+  const nw = new Date(lastWeekly(now)); nw.setDate(nw.getDate()+7);
+  document.getElementById("tDaily").textContent = fmt(nd-now);
+  document.getElementById("tWeekly").textContent = fmt(nw-now);
+  renderOdyle();
+  if (noReset !== true) autoReset();
+}
+
+// ---- Odyle tracker (per character) ----
+function odNow(){
+  const o = (st.od||{})[cur];
+  if (!o) return null;
+  let {amt, next} = o;
+  const now = Date.now();
+  if (now >= next){
+    const k = 1 + Math.floor((now-next)/OD_INT);
+    amt = Math.min(OD_MAX, amt + k*OD_TICK);
+    next += k*OD_INT;
+  }
+  return {amt, next};
+}
+function renderOdyle(){
+  const u = T(), o = odNow(), v = document.getElementById("odView"), sec = document.getElementById("odyle");
+  sec.classList.toggle("nodata", !o);
+  sec.classList.toggle("odfull", !!o && o.amt >= OD_MAX);
+  if (!o){ v.innerHTML = `<div class="odmeta">${esc(u.odEmpty)}</div>`; return; }
+  const now = Date.now();
+  let meta;
+  if (o.amt >= OD_MAX) meta = `<b>${esc(u.odFullNow)}</b>`;
+  else {
+    const fullAt = o.next + (Math.ceil((OD_MAX-o.amt)/OD_TICK)-1)*OD_INT;
+    meta = `${esc(u.odIn)} <b>${fmt(o.next-now)}</b> · ${esc(u.odFull)} <b>${fmt(fullAt-now)}</b>`;
+    if (fullAt-now < 24*3600e3) meta += `<div class="odwarn">⚠ ${esc(u.odWarn)}</div>`;
+  }
+  v.innerHTML = `<div class="odbig">${o.amt}<small>/${OD_MAX}</small></div><div class="bar"><i style="width:${100*o.amt/OD_MAX}%"></i></div><div class="odmeta">${meta}</div>`;
+}
+document.getElementById("odEdit").onclick = ()=>{
+  const f = document.getElementById("odForm"), o = odNow();
+  if (!f.classList.contains("open") && o){
+    document.getElementById("odAmt").value = o.amt;
+    document.getElementById("odH").value = ""; document.getElementById("odM").value = "";
+  }
+  f.classList.toggle("open");
+  syncChev();
+};
+// keep the chevron rotation in sync with the form state
+const syncChev = ()=>document.getElementById("odEdit").classList.toggle("on", document.getElementById("odForm").classList.contains("open"));
+document.getElementById("odSave").onclick = ()=>{
+  const ai = document.getElementById("odAmt"), a = parseInt(ai.value, 10);
+  if (isNaN(a)){ ai.focus(); return; }
+  const hs = document.getElementById("odH").value, ms = document.getElementById("odM").value;
+  const now = Date.now(), o = odNow();
+  let next;
+  if (hs !== "" || ms !== "") next = now + Math.max(1, (+hs||0)*60 + (+ms||0))*60e3;
+  else next = o ? o.next : now + OD_INT;
+  st.od = st.od || {};
+  st.od[cur] = {amt: Math.max(0, Math.min(OD_MAX, a)), next};
+  save();
+  document.getElementById("odForm").classList.remove("open");
+  syncChev();
+  renderOdyle();
+};
+document.querySelectorAll("[data-spend]").forEach(b=>b.onclick=()=>{
+  const o = odNow(); if (!o) return;
+  st.od[cur] = {amt: Math.max(0, o.amt - +b.dataset.spend), next: o.next};
+  save(); renderOdyle();
+});
+
+/* ---------------- timers subpage ---------------- */
+const DAY = 86400000, MIN = 60000;
+
+function anchorMs(serverMs, hhmm){
+  const [h,m] = hhmm.split(":").map(Number);
+  const d = new Date(serverMs); d.setUTCHours(h,m,0,0);
+  return d.getTime();
+}
+function lastOcc(sch, serverMs){
+  if (sch.type==="interval"){
+    let t = anchorMs(serverMs, sch.anchor);
+    while (t + sch.everyMin*MIN <= serverMs) t += sch.everyMin*MIN;
+    return t <= serverMs ? t : t - sch.everyMin*MIN;
+  }
+  if (sch.type==="hourly"){
+    const d = new Date(serverMs); d.setUTCMinutes(sch.minute,0,0);
+    return d.getTime();
+  }
+  const [h,m] = sch.time.split(":").map(Number);
+  for(let back=0; back<=7; back++){
+    const d = new Date(serverMs - back*DAY);
+    if (sch.days.includes(d.getUTCDay())){
+      const c = new Date(serverMs - back*DAY); c.setUTCHours(h,m,0,0);
+      if(c.getTime() <= serverMs) return c.getTime();
+    }
+  }
+  return 0;
+}
+function nextOcc(sch, serverMs){
+  if (sch.type==="interval"){
+    let t = anchorMs(serverMs, sch.anchor);
+    while (t <= serverMs) t += sch.everyMin*MIN;
+    return t;
+  }
+  if (sch.type==="hourly"){
+    const d = new Date(serverMs); d.setUTCMinutes(sch.minute,0,0);
+    if(d.getTime() <= serverMs) d.setUTCHours(d.getUTCHours()+1, sch.minute,0,0);
+    return d.getTime();
+  }
+  const [h,m] = sch.time.split(":").map(Number);
+  for(let fwd=0; fwd<=8; fwd++){
+    const base = serverMs + fwd*DAY;
+    const d = new Date(base);
+    if (sch.days.includes(d.getUTCDay())){
+      const c = new Date(base); c.setUTCHours(h,m,0,0);
+      if(c.getTime() > serverMs) return c.getTime();
+    }
+  }
+  return 0;
+}
+function schedText(sch){
+  const u = T();
+  if (sch.type==="interval"){
+    const ev = sch.everyMin%60===0 ? (sch.everyMin/60)+"h" : sch.everyMin+"m";
+    return u.tRespawn+" "+ev+" ("+u.tFrom+" "+sch.anchor+" "+u.tServerSuffix+")";
+  }
+  if (sch.type==="hourly") return u.tEveryHour+String(sch.minute).padStart(2,"0");
+  return sch.days.map(d=>u.daysShort[d]).join(", ")+" · "+sch.time+" "+u.tServerSuffix;
+}
+function fmtDur(ms){
+  if(ms<=0) return "0s";
+  let s = Math.floor(ms/1000);
+  const d = Math.floor(s/86400); s%=86400;
+  const h = Math.floor(s/3600);  s%=3600;
+  const m = Math.floor(s/60);    s%=60;
+  if(d>0) return d+"d "+h+"h "+m+"m";
+  if(h>0) return h+"h "+m+"m "+String(s).padStart(2,"0")+"s";
+  return m+"m "+String(s).padStart(2,"0")+"s";
+}
+const fmtClock = date => date.toLocaleString(undefined,{weekday:"short",hour:"2-digit",minute:"2-digit",hour12:false});
+const statusOf = (b, off) => {
+  const sn = Date.now() + off*MIN;
+  const last = lastOcc(b.s, sn), next = nextOcc(b.s, sn);
+  const upUntil = last + b.dur*MIN;
+  return {sn, last, next, up: sn>=last && sn<upUntil, upUntil};
+};
+function tcardHTML(b, off, i){
+  const u = T(), l = L();
+  const {sn, next, up, upUntil} = statusOf(b, off);
+  const cls = up ? "up" : (next - sn < 30*MIN ? "soon" : "");
+  const nm  = Array.isArray(b.name) ? b.name[l] : b.name;
+  const zn  = Array.isArray(b.zone) ? b.zone[l] : (b.zone||"");
+  const at  = fmtClock(new Date((up?upUntil:next) - off*MIN));
+  const map = b.marker ? ` <a href="https://interactivemap.app/aion2/maps/abyss-reshanta-a?marker_id=${b.marker}" target="_blank" rel="noopener">${u.tMap} ↗</a>` : "";
+  let pct;
+  if (up) pct = 100*(sn-(upUntil-b.dur*MIN))/(b.dur*MIN);
+  else { const prev = lastOcc(b.s, sn); pct = 100*(sn-prev)/((next-prev)||1); }
+  pct = Math.max(0,Math.min(100,pct));
+  return `<div class="tcard ${cls}" data-i="${i}">
+    <span class="tdot"></span>
+    <div>
+      <div class="tnm">${esc(nm)}${up?'<span class="tbadge">'+esc(u.tUp)+'</span>':''}</div>
+      <div class="tzone">${esc(zn)}</div>
+      <div class="tsched">${esc(schedText(b.s))}</div>
+    </div>
+    <div class="tright">
+      <div class="tlbl">${esc(up?u.tSpawned:u.tSpawnsIn)}</div>
+      <div class="tcd">${up?esc(u.tUp):fmtDur(next-sn)}</div>
+      <div class="tat">${esc(up?u.tUntil:u.tAt)} ${at}${map}</div>
+    </div>
+    <div class="tbar"><i style="width:${pct}%"></i></div>
+  </div>`;
+}
+function renderTimers(){
+  const off = SRV_OFFSET;
+  document.getElementById("tEvents").innerHTML = EXTRA_SCHED.map((b,i)=>tcardHTML(b,off,i)).join("");
+  document.getElementById("tEvSec").classList.toggle("hidden", !st.showEv);
+  renderField();
+  timerTick();
+}
+function timerTick(){
+  if (st.page !== "timers") return;
+  const off = SRV_OFFSET, u = T(), l = L();
+  const sn = Date.now() + off*MIN;
+  document.getElementById("tLocalV").textContent  = fmtClock(new Date());
+  document.getElementById("tServerV").textContent = fmtClock(new Date(sn));
+  document.querySelectorAll("#tEvents .tcard").forEach(card=>{
+    const i = +card.dataset.i;
+    const b = EXTRA_SCHED[i];
+    if(!b) return;
+    const {next, up, upUntil} = statusOf(b, off);
+    const cls = up ? "up" : (next - sn < 30*MIN ? "soon" : "");
+    if (card.className !== "tcard "+cls) card.className = "tcard "+cls;
+    card.querySelector(".tcd").textContent = up ? u.tUp : fmtDur(next-sn);
+    card.querySelector(".tlbl").textContent = up ? u.tSpawned : u.tSpawnsIn;
+    card.querySelector(".tnm").innerHTML = esc(Array.isArray(b.name)?b.name[l]:b.name) + (up ? '<span class="tbadge">'+esc(u.tUp)+'</span>' : "");
+    card.querySelector(".tbar i").style.width = Math.max(0,Math.min(100,
+      up ? 100*(sn-(upUntil-b.dur*MIN))/(b.dur*MIN) : 100*(sn-lastOcc(b.s,sn))/((next-lastOcc(b.s,sn))||1) )) + "%";
+  });
+  fieldTick();
+}
+
+/* ---------------- field bosses (kill-based respawn) ---------------- */
+const FACTIONS = [["elyos","tElyos"],["asmo","tAsmo"],["abyss","tAbyssF"]];
+function fbKill(id){ return (st.fkills||{})[id]; }
+const FB_KILLDELAY = 30*MIN;   // assume the boss dies 30 min after spawning -> the cycle keeps rolling on its own
+function fbState(b){
+  const k = fbKill(b.id);
+  if (!k) return {known:false};
+  const now = Date.now(), C = b.c*MIN, P = C + FB_KILLDELAY;
+  if (now < k + C) return {known:true, up:false, spawn:k+C, until:0};
+  const n = Math.floor((now - k - C)/P);
+  const wStart = k + C + n*P;
+  const up = now < wStart + FB_KILLDELAY;
+  return {known:true, up, spawn:wStart + P, until: up ? wStart + FB_KILLDELAY : 0};
+}
+function fmtCycle(m){ return m%60===0 ? (m/60)+"h" : m+"m"; }
+function renderFactions(){
+  const box=document.getElementById("factions"), u=T();
+  box.innerHTML = FACTIONS.map(([f,label])=>
+    `<button data-f="${f}" class="${f===st.faction?'on':''}">${esc(u[label])}</button>`).join("");
+  box.querySelectorAll("button").forEach(x=>x.onclick=()=>{ st.faction=x.dataset.f; save(); renderField(); });
+}
+function fbCard(b){
+  const u=T(), s=fbState(b);
+  const cls = !s.known ? "" : (s.up ? "up" : "dead");
+  const cd  = !s.known ? "—" : (s.up ? u.tFUp : fmtDur(s.spawn-Date.now()));
+  const sub = !s.known ? "" : (s.up ? esc(u.tUntil)+" "+fmtClock(new Date(s.until)) : esc(u.tAt)+" "+fmtClock(new Date(s.spawn)));
+  const meta = esc(b.z)+" · "+esc(u.tEvery)+" "+fmtCycle(b.c)+(s.known?"":" · "+esc(u.tNoKill));
+  return `<div class="fbcard ${cls}" data-id="${b.id}">
+    <span class="fbstate"></span>
+    <div><div class="fbnm">${esc(b.n)}</div><div class="fbmeta">${meta}</div></div>
+    <div><div class="fbcd">${esc(cd)}</div><div class="fbsub">${sub}</div></div>
+    <div class="fbact">
+      <button class="kill" data-act="kill">${esc(u.tKill)}</button>
+      ${s.known?`<button class="clr" data-act="clr" title="${esc(u.tClr)}">${ICON.x}</button>`:""}
+    </div>
+  </div>`;
+}
+function renderField(){
+  const u=T();
+  renderFactions();
+  const sortBtn=document.getElementById("fSort");
+  sortBtn.textContent = st.fsort==="next" ? u.tSortNext : u.tSortZone;
+  sortBtn.classList.toggle("on", st.fsort==="next");
+  let list = FIELD_BOSSES.filter(b=>b.f===st.faction);
+  document.getElementById("tFieldCount").textContent =
+    list.filter(b=>fbState(b).up).length+"/"+list.length;
+  const box=document.getElementById("tField");
+  if (st.fsort==="next"){
+    list = list.slice().sort((a,b)=>{
+      const sa=fbState(a), sb=fbState(b);
+      const va = sa.known ? (sa.up ? -1 : sa.spawn) : Infinity;
+      const vb = sb.known ? (sb.up ? -1 : sb.spawn) : Infinity;
+      return va-vb;
+    });
+    box.innerHTML = list.map(fbCard).join("");
+  } else {
+    const zones=[...new Set(list.map(b=>b.z))];
+    box.innerHTML = zones.map(z=>
+      `<div class="fbzone">${esc(z)}</div>`+list.filter(b=>b.z===z).map(fbCard).join("")).join("");
+  }
+}
+function fieldTick(){
+  if (st.page!=="timers") return;
+  const u=T();
+  document.querySelectorAll("#tField .fbcard").forEach(card=>{
+    const b=FIELD_BOSSES.find(x=>x.id===card.dataset.id); if(!b) return;
+    const s=fbState(b);
+    const cls = !s.known ? "" : (s.up ? "up" : "dead");
+    if (card.className!=="fbcard "+cls) card.className="fbcard "+cls;
+    card.querySelector(".fbcd").textContent = !s.known ? "—" : (s.up ? u.tFUp : fmtDur(s.spawn-Date.now()));
+    card.querySelector(".fbsub").textContent = !s.known ? "" :
+      (s.up ? u.tUntil+" "+fmtClock(new Date(s.until)) : u.tAt+" "+fmtClock(new Date(s.spawn)));
+  });
+}
+document.getElementById("tField").addEventListener("click", e=>{
+  const btn=e.target.closest("button[data-act]"); if(!btn) return;
+  const id=e.target.closest(".fbcard").dataset.id;
+  st.fkills = st.fkills||{};
+  if (btn.dataset.act==="kill") st.fkills[id]=Date.now(); else delete st.fkills[id];
+  save(); renderField();
+});
+document.getElementById("fSort").onclick=()=>{ st.fsort = st.fsort==="next"?"zone":"next"; save(); renderField(); };
+document.getElementById("fClear").onclick=()=>{ st.fkills={}; save(); renderField(); };
+
+/* ---------------- wiring ---------------- */
+document.querySelectorAll("#nav button").forEach(b=>b.onclick=()=>setPage(b.dataset.page));
+document.getElementById("tShowEv").onchange = e=>{ st.showEv = e.target.checked; save(); document.getElementById("tEvSec").classList.toggle("hidden", !st.showEv); };
+document.querySelectorAll("[data-lang]").forEach(b=>b.onclick=()=>{ st.lang=b.dataset.lang; save(); render(); });
+const toggleSettings = force => {
+  const o = document.getElementById("settings").classList.toggle("open", force);
+  document.getElementById("gear").classList.toggle("on", o);
+};
+document.getElementById("gear").onclick = ()=>toggleSettings();
+document.getElementById("save").onclick = ()=>{
+  st.day = +document.getElementById("cfgDay").value;
+  st.hour = Math.max(0, Math.min(23, +document.getElementById("cfgHour").value||0));
+  st.ld = +lastDaily(); st.lw = +lastWeekly();
+  save(); renderChecklist();
+  toggleSettings(false);
+};
+function renderChars(){
+  const box = document.getElementById("charList");
+  box.textContent = "";
+  for (const c of st.chars){
+    const chip = document.createElement("span"); chip.className = "cchip";
+    const n = document.createElement("span"); n.textContent = c; chip.appendChild(n);
+    if (st.chars.length > 1){
+      const x = document.createElement("button"); x.innerHTML = ICON.x; x.setAttribute("aria-label","Remove"); // static SVG, no user input
+      x.onclick = ()=>{
+        if (!confirm((L()?"Remove ":"Entfernen: ")+c+"?")) return;
+        st.chars = st.chars.filter(y=>y!==c);
+        for (const k of Object.keys(st.v)) if (k.startsWith(c+"|")) delete st.v[k];
+        if (st.od) delete st.od[c];
+        if (cur===c) cur = st.chars[0];
+        save(); renderChecklist();
+      };
+      chip.appendChild(x);
+    }
+    box.appendChild(chip);
+  }
+}
+function addChar(){
+  const inp = document.getElementById("newChar");
+  const n = inp.value.trim();
+  if (!n || n==="_acc" || n.includes("|") || st.chars.includes(n)) { inp.focus(); return; }
+  st.chars.push(n); cur = n; inp.value = "";
+  save(); renderChecklist();
+}
+document.getElementById("addChar").onclick = addChar;
+document.getElementById("newChar").onkeydown = e=>{ if (e.key==="Enter"){ e.preventDefault(); addChar(); } };
+document.getElementById("resetD").onclick = ()=>{ clear("d"); save(); renderChecklist(); };
+document.getElementById("resetW").onclick = ()=>{ clear("w"); save(); renderChecklist(); };
+
+if (!st.ld){ st.ld = +lastDaily(); st.lw = +lastWeekly(); save(); }
+if (location.hash === "#timers") st.page = "timers";
+else if (location.hash === "#checklist") st.page = "checklist";
+document.getElementById("tShowEv").checked = !!st.showEv;
+render(); tickChecklist(); setInterval(tickChecklist, 30000); setInterval(timerTick, 1000);
+</script>
+</body>
+</html>
