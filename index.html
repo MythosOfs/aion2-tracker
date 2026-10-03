@@ -145,6 +145,7 @@
   .ffeed.warn{color:#ffb4a2}
   .fleg{font-size:11.5px;color:var(--dim);margin:0 0 8px}
   .frq{display:inline-block;min-width:20px;text-align:center;margin:0 2px;padding:1px 5px;border-radius:6px;font-weight:700;font-size:10.5px}
+  .frq.x{color:#ff6b6b;border:1px solid rgba(255,107,107,.5)}
   .frq.g{color:#5fd38d;border:1px solid rgba(95,211,141,.45)}
   .frq.b{color:#8fbaff;border:1px solid rgba(101,161,255,.45)}
   .frq.y{color:#ffc454;border:1px solid rgba(255,196,84,.5)}
@@ -153,6 +154,7 @@
   .pagefoot a:hover{color:var(--txt);opacity:1}
   .pagefoot svg{width:20px;height:20px;display:block;fill:currentColor}
   .fbstar{color:#ffc454;margin-left:6px;font-size:11px}
+  .fbstar.x{color:#ff6b6b}
   .fbzone{color:var(--faint);font-size:10.5px;text-transform:uppercase;letter-spacing:.7px;
     margin:10px 0 2px;font-weight:700}
   .fbcard{display:grid;grid-template-columns:auto 1fr auto auto;gap:10px;align-items:center;
@@ -168,18 +170,22 @@
   .fbcard.soon .fbcd{color:var(--warn)}
   .fbcard.dead .fbcd{color:var(--txt)}
   /* legendary loot bosses: Dartan / Kashapa / Lagta */
-  /* loot rarity tiers: green 35 / blue 40 / gold 46 */
+  /* loot rarity tiers: green 35 / blue 40 / gold 46 / red 70 */
   .fbcard.rg{background:linear-gradient(90deg,rgba(95,211,141,.10),transparent 72%);box-shadow:inset 3px 0 0 #5fd38d;padding-left:10px}
   .fbcard.rb{background:linear-gradient(90deg,rgba(101,161,255,.12),transparent 72%);box-shadow:inset 3px 0 0 #65a1ff;padding-left:10px}
   .fbcard.ry{background:linear-gradient(90deg,rgba(255,196,84,.16),transparent 72%);box-shadow:inset 3px 0 0 #ffc454;padding-left:10px}
   .fbcard.ry .fbnm{color:#ffd27a}
   .fbcard.ry .fbstate,.fbcard.ry.up .fbstate,.fbcard.ry.dead .fbstate{background:#ffc454;box-shadow:0 0 0 4px rgba(255,196,84,.18)}
+  .fbcard.rx{background:linear-gradient(90deg,rgba(255,107,107,.18),transparent 72%);box-shadow:inset 3px 0 0 #ff6b6b;padding-left:10px}
+  .fbcard.rx .fbnm{color:#ff9a9a}
+  .fbcard.rx .fbstate,.fbcard.rx.up .fbstate,.fbcard.rx.dead .fbstate{background:#ff6b6b;box-shadow:0 0 0 4px rgba(255,107,107,.18)}
   .fbrar{display:inline-block;min-width:22px;text-align:center;margin-left:7px;padding:1px 5px;
     border-radius:6px;font-size:10.5px;font-weight:700;font-variant-numeric:tabular-nums;
     border:1px solid transparent;vertical-align:1px}
   .fbrar.g{color:#5fd38d;border-color:rgba(95,211,141,.45);background:rgba(95,211,141,.10)}
   .fbrar.b{color:#8fbaff;border-color:rgba(101,161,255,.45);background:rgba(101,161,255,.10)}
   .fbrar.y{color:#ffc454;border-color:rgba(255,196,84,.5);background:rgba(255,196,84,.12)}
+  .fbrar.x{color:#ff8080;border-color:rgba(255,107,107,.55);background:rgba(255,107,107,.14)}
   .fbact{display:flex;gap:4px}
   .fbact button{width:30px;height:30px;border-radius:8px;border:1px solid var(--line);
     background:var(--bg);color:var(--dim);cursor:pointer;display:inline-flex;align-items:center;
@@ -385,7 +391,7 @@ const FIELD_BOSSES = [
 {id:"elyos21",f:"elyos",n:"Silent Dartan",nd:"Schweigender Dartan",z:"Artamia Plateau South",c:720,r:"y",gl:46},
 {id:"elyos22",f:"elyos",n:"Soul Ruler Kashapa",nd:"Seelenherrscher Kashapa",z:"Artamia Plateau East",c:720,r:"y",gl:46},
 {id:"elyos23",f:"elyos",n:"High Commander Lagta",nd:"Legat Lagta",z:"Red Forest",c:1440,r:"y",gl:46},
-{id:"elyos24",f:"elyos",n:"Eternal Gartua",nd:"Ewiger Gartua",z:"Isle of Eternity",c:1440,r:"",gl:0},
+{id:"elyos24",f:"elyos",n:"Eternal Gartua",nd:"Ewiger Gartua",z:"Isle of Eternity",c:1440,r:"x",gl:70},
 {id:"asmo01",f:"asmo",n:"Melted Danar",nd:"Geschmolzener Danar",z:"Dredgion Crash Site",c:60,r:"g",gl:35},
 {id:"asmo02",f:"asmo",n:"Black Warrior Aed",nd:"Dunkelkrieger Aed",z:"Nameless Graveyard",c:60,r:"g",gl:35},
 {id:"asmo03",f:"asmo",n:"Faithful Rajit",nd:"Treuer Rajit",z:"Sanctuary Watch Post",c:60,r:"g",gl:35},
@@ -409,7 +415,7 @@ const FIELD_BOSSES = [
 {id:"asmo21",f:"asmo",n:"Silent Dartan",nd:"Schweigender Dartan",z:"Forest of Purification",c:720,r:"y",gl:46},
 {id:"asmo22",f:"asmo",n:"Soul Ruler Kashapa",nd:"Seelenherrscher Kashapa",z:"Pafnite Burial Ground",c:720,r:"y",gl:46},
 {id:"asmo23",f:"asmo",n:"High Commander Lagta",nd:"Legat Lagta",z:"Ragta Fortress",c:1440,r:"y",gl:46},
-{id:"asmo24",f:"asmo",n:"Immortal Gartua",nd:"Unsterblicher Gartua",z:"Isle of Immortality",c:1440,r:"",gl:0},
+{id:"asmo24",f:"asmo",n:"Immortal Gartua",nd:"Unsterblicher Gartua",z:"Isle of Immortality",c:1440,r:"x",gl:70},
 {id:"abyss02",f:"abyss",n:"Argo, the Spirit King",nd:"Geisterfürst Agro",z:"Siel's Right Wing (Siel's Wing Islands)",c:1440,r:"",gl:0}
 ]
 
@@ -805,7 +811,7 @@ function fbView(b){
 function fbCard(b){
   const {u,s,cls,cd,sub}=fbView(b);
   const meta = esc(b.z)+" · "+esc(u.tEvery)+" "+fmtCycle(b.c)+(s.known?"":" · "+esc(u.tNoKill));
-  const star = b.r==="y" ? `<span class="fbstar">\u2605</span>` : "";
+  const star = (b.r==="y"||b.r==="x") ? `<span class="fbstar${b.r==="x"?" x":""}">\u2605</span>` : "";
   const rar  = b.r ? `<span class="fbrar ${b.r}" title="${esc(u.tGear)} ${b.gl}">${b.gl}</span>` : "";
   const act = s.live
     ? `<span class="fblive">${esc(u.tLive)}</span>`
@@ -837,7 +843,7 @@ function renderField(){
     });
     box.innerHTML = list.map(fbCard).join("");
   } else if (st.fsort==="rar"){
-    const ord={y:0,b:1,g:2};                      // gold -> blue -> green -> unranked
+    const ord={x:0,y:1,b:2,g:3};                  // red 70 -> gold -> blue -> green -> unranked
     const rk = t => (t in ord) ? ord[t] : 3;      // note: rank 0 is valid, so no `||`
     list = list.slice().sort((a,b)=>{
       const d=rk(a.r)-rk(b.r);
@@ -881,7 +887,7 @@ function renderSort(){
 }
 function renderLeg(){
   const el=document.getElementById("fLeg"); if(!el) return; const u=T();
-  el.innerHTML = esc(u.tRar)+": "+[["g",35],["b",40],["y",46]]
+  el.innerHTML = esc(u.tRar)+": "+[["x",70],["y",46],["b",40],["g",35]]
     .map(([k,l])=>`<span class="frq ${k}">${l}</span>`).join("");
 }
 document.getElementById("fSort").onchange=e=>{ st.fsort=e.target.value; save(); renderField(); };
